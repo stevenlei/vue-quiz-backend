@@ -1,6 +1,6 @@
 <script>
 import { db } from "../../../firebase-init";
-import { query, collection, getDocs } from "firebase/firestore";
+import { query, collection, doc, getDocs, deleteDoc } from "firebase/firestore";
 
 export default {
   data() {
@@ -13,6 +13,7 @@ export default {
   },
   methods: {
     async readData() {
+      this.questions = [];
       const ref = query(collection(db, "questions"));
       try {
         const querySnapshot = await getDocs(ref);
@@ -24,6 +25,16 @@ export default {
         });
       } catch (e) {
         console.error(e);
+      }
+    },
+    async deleteQuestion(id) {
+      if (confirm("Are you sure you want to delete this question?")) {
+        const docRef = doc(db, "questions", id);
+        await deleteDoc(docRef);
+        console.log("Document deleted with ID: ", docRef.id);
+
+        // reload data from firebase
+        await this.readData();
       }
     },
   },
@@ -76,6 +87,12 @@ export default {
           :to="`/question/edit/${question.id}`"
           >Edit</router-link
         >
+        <button
+          class="ml-4 text-slate-400 hover:text-red-600"
+          @click="deleteQuestion(question.id)"
+        >
+          Delete
+        </button>
       </span>
     </li>
   </ul>
