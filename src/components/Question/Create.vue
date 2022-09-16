@@ -1,5 +1,33 @@
 <script>
-export default {};
+import { db } from "../../../firebase-init";
+import { collection, addDoc } from "firebase/firestore";
+
+export default {
+  data() {
+    return {
+      question: "",
+      answers: "",
+    };
+  },
+  methods: {
+    async createQuestion() {
+      const answers = this.answers.split("\n").map((answer, index) => {
+        return {
+          text: answer,
+          isCorrect: index === 0,
+        };
+      });
+
+      const docRef = await addDoc(collection(db, "questions"), {
+        question: this.question,
+        answers: answers,
+      });
+      console.log("Document written with ID: ", docRef.id);
+
+      this.$router.push("/questions");
+    },
+  },
+};
 </script>
 
 <template>
@@ -15,12 +43,14 @@ export default {};
         id="question"
         class="border rounded px-2 py-1 block flex-1"
         placeholder="Question"
+        v-model="question"
       />
     </li>
     <li class="flex py-2 border-b">
       <label for="answers" class="w-32 text-slate-500">Answers</label>
       <textarea
         id="answers"
+        v-model="answers"
         type="text"
         class="border rounded px-2 py-1 block flex-1 h-40"
         placeholder="Answers line by line, first line is the correct answer"
@@ -38,6 +68,7 @@ export default {};
           py-1
           text-lg
         "
+        @click="createQuestion"
       >
         Create
       </button>
