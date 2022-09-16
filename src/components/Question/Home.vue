@@ -1,5 +1,33 @@
 <script>
-export default {};
+import { db } from "../../../firebase-init";
+import { query, collection, getDocs } from "firebase/firestore";
+
+export default {
+  data() {
+    return {
+      questions: [],
+    };
+  },
+  async mounted() {
+    await this.readData();
+  },
+  methods: {
+    async readData() {
+      const ref = query(collection(db, "questions"));
+      try {
+        const querySnapshot = await getDocs(ref);
+        querySnapshot.forEach((doc) => {
+          this.questions.push({
+            id: doc.id,
+            ...doc.data(),
+          });
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  },
+};
 </script>
 
 <template>
@@ -28,59 +56,24 @@ export default {};
       <span class="mx-4 flex-1">Answers</span>
       <span class="mx-4 flex-1">Actions</span>
     </li>
-    <li class="flex py-2 border-b">
-      <span class="mx-4 flex-1">1</span>
-      <span class="mx-4 flex-1">&lt;h1&gt;&lt;/h1&gt; 是什麼標籤？</span>
+    <li
+      class="flex py-2 border-b"
+      :key="question.id"
+      v-for="question in questions"
+    >
+      <span class="mx-4 flex-1">{{ question.id }}</span>
+      <span class="mx-4 flex-1">{{ question.question }}</span>
       <span class="mx-4 flex-1">
-        <ul>
-          <li class="text-green-600">標題</li>
-          <li>段落</li>
-          <li>連結</li>
-          <li>清單</li>
+        <ul v-for="(answer, index) in question.answers" :key="index">
+          <li :class="{ 'text-green-600': answer.isCorrect }">
+            {{ answer.text }}
+          </li>
         </ul>
       </span>
       <span class="mx-4 flex-1">
         <router-link
           class="text-slate-600 hover:text-slate-800"
-          to="/question/edit/1"
-          >Edit</router-link
-        >
-      </span>
-    </li>
-    <li class="flex py-2 border-b">
-      <span class="mx-4 flex-1">1</span>
-      <span class="mx-4 flex-1">&lt;h1&gt;&lt;/h1&gt; 是什麼標籤？</span>
-      <span class="mx-4 flex-1">
-        <ul>
-          <li class="text-green-600">標題</li>
-          <li>段落</li>
-          <li>連結</li>
-          <li>清單</li>
-        </ul>
-      </span>
-      <span class="mx-4 flex-1">
-        <router-link
-          class="text-slate-600 hover:text-slate-800"
-          to="/question/edit/1"
-          >Edit</router-link
-        >
-      </span>
-    </li>
-    <li class="flex py-2 border-b">
-      <span class="mx-4 flex-1">1</span>
-      <span class="mx-4 flex-1">&lt;h1&gt;&lt;/h1&gt; 是什麼標籤？</span>
-      <span class="mx-4 flex-1">
-        <ul>
-          <li class="text-green-600">標題</li>
-          <li>段落</li>
-          <li>連結</li>
-          <li>清單</li>
-        </ul>
-      </span>
-      <span class="mx-4 flex-1">
-        <router-link
-          class="text-slate-600 hover:text-slate-800"
-          to="/question/edit/1"
+          :to="`/question/edit/${question.id}`"
           >Edit</router-link
         >
       </span>
